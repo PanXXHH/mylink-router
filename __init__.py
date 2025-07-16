@@ -8,16 +8,16 @@ import importlib
 import os
 import urllib.parse
 import subprocess
+
 # 其他导入
 import shelve
+
 # from mysupport.Pather.Pather3 import Pather
 from ruamel.yaml import YAML
 from typing import Optional
 from mysupport.PopupWindowGenerator._2 import PopupWindowGenerator, checkbox
 import uuid
 import _private_config
-# import App
-
 
 
 # 获取脚本的绝对路径
@@ -32,15 +32,15 @@ def file_exists_in_dir(filename: str, dir: str) -> bool:
 
 
 def explore(dir: str):
-    subprocess.run('explorer %s' % dir)
+    subprocess.run("explorer %s" % dir)
 
 
 def get_config(file_path: str) -> dict:
     yaml = YAML()
     try:
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             config_data = yaml.load(file)
-            return config_data.get('CONFIG', {})
+            return config_data.get("CONFIG", {})
     except FileNotFoundError:
         return None
     except Exception as e:
@@ -59,15 +59,16 @@ def process_root_path(root_value: Optional[str], conf_dir: str) -> str:
     返回值:
     基于 root_value 和 conf_dir 计算出的绝对路径。
     """
-    if not root_value or root_value == '.\\':  # 如果 root_value 为空或者为 '.\\'，则返回 conf_dir
+    if (
+        not root_value or root_value == ".\\"
+    ):  # 如果 root_value 为空或者为 '.\\'，则返回 conf_dir
         return conf_dir
-    if root_value == '..\\':  # 如果 root_value 为 '..\\'，则返回 conf_dir 的父目录
+    if root_value == "..\\":  # 如果 root_value 为 '..\\'，则返回 conf_dir 的父目录
         return os.path.dirname(conf_dir)
 
     # 使用 os.path.abspath 确保返回的是绝对路径
     return os.path.abspath(
-        root_value if os.path.isabs(
-            root_value) else os.path.join(conf_dir, root_value)
+        root_value if os.path.isabs(root_value) else os.path.join(conf_dir, root_value)
     )
 
 
@@ -86,7 +87,7 @@ def search_config(filename: str, target_dirs: list[str], query=None):
         if filename_lower in (name.lower() for name in user_cache.keys()):
             cached_dir = user_cache[filename_lower]
             if file_exists_in_dir(filename, cached_dir):
-                print('从缓存中找到：{}'.format(Path(cached_dir) / filename))
+                print("从缓存中找到：{}".format(Path(cached_dir) / filename))
                 return cached_dir, Path(cached_dir) / filename
 
             print(f"缓存路径{cached_dir}不再有效，重新搜索文件...")
@@ -132,11 +133,11 @@ def post(parse_result, target_dirs: list[str]):
 
     config = get_config(Path(config_directory) / config_file)
 
-    pwg = PopupWindowGenerator(title=f"Post", buttons=[
-                               '确定', '取消'], esc_exit=True)
+    pwg = PopupWindowGenerator(title=f"Post", buttons=["确定", "取消"], esc_exit=True)
     pwg.add_input_element(str, "内容")
     event, values = pwg.popup(
-        f"收件方：{(Path(config_directory) / str(config['service_path'])).resolve().name}(.postbox@service_path.{parse_result.netloc}.mylink)")
+        f"收件方：{(Path(config_directory) / str(config['service_path'])).resolve().name}(.postbox@service_path.{parse_result.netloc}.mylink)"
+    )
 
     print(event, values)
     if not event or event == "取消":
@@ -148,12 +149,11 @@ def post(parse_result, target_dirs: list[str]):
         pwg = PopupWindowGenerator().popup("内容不能为空！")
         exit()
 
-    postbox_path = Path(config_directory) / \
-        str(config['service_path']) / ".postbox"
+    postbox_path = Path(config_directory) / str(config["service_path"]) / ".postbox"
     postbox_path.mkdir(exist_ok=True)
 
     current_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # 获取当前日期并格式化
-    filename = postbox_path / f'{current_date}.txt'
+    filename = postbox_path / f"{current_date}.txt"
 
     if filename.exists():
         pwg = PopupWindowGenerator().popup("发送消息太频繁，稍后重试！")
@@ -163,6 +163,7 @@ def post(parse_result, target_dirs: list[str]):
         file.write(content)
 
     PopupWindowGenerator().popup("邮件发送成功！")
+
 
 # from dotenv import load_dotenv
 
@@ -176,9 +177,6 @@ if __name__ == "__main__":
     # load_dotenv()
     # # 读取COOKIE变量
     # self._cookies = cookies or os.getenv('COOKIE')
-
-
-
 
     # 开发模式
     if sys.argv[1] == "dev":
@@ -198,7 +196,9 @@ if __name__ == "__main__":
         post(parse_result, _private_config.TARGET_PATHS)
         exit()
 
-    config_directory, config_file = main_withgui(parse_result, _private_config.TARGET_PATHS)
+    config_directory, config_file = main_withgui(
+        parse_result, _private_config.TARGET_PATHS
+    )
     if config_directory is not None:
         config = get_config(Path(config_directory) / config_file)
 
@@ -216,19 +216,32 @@ if __name__ == "__main__":
                 if not config_data:
                     config_data = {}
 
-                files = [entry for entry in postbox.iterdir() if (
-                    postbox / entry).is_file() and not entry.name.startswith(".")]
+                files = [
+                    entry
+                    for entry in postbox.iterdir()
+                    if (postbox / entry).is_file() and not entry.name.startswith(".")
+                ]
                 if files:
                     # 获取今天的日期，格式化为 'YYYY-MM-DD'
-                    today_str = datetime.today().strftime('%Y-%m-%d')
-                    if "Do_Not_Remind_Within_Today" not in config_data or config_data["Do_Not_Remind_Within_Today"] != today_str:
-                        pwg = PopupWindowGenerator(title="Postbox", buttons=[
-                                                   "查看并继续", "仅查看", "忽略", "取消"], esc_exit=True)
+                    today_str = datetime.today().strftime("%Y-%m-%d")
+                    if (
+                        "Do_Not_Remind_Within_Today" not in config_data
+                        or config_data["Do_Not_Remind_Within_Today"] != today_str
+                    ):
+                        pwg = PopupWindowGenerator(
+                            title="Postbox",
+                            buttons=["查看并继续", "仅查看", "忽略", "取消"],
+                            esc_exit=True,
+                        )
                         pwg.add_input_element(checkbox(["今天内不再提示"]))
-                        event, values = pwg.popup(f"你有未读文件{len(files)}条！是否查看？")
-                        print(event, )
+                        event, values = pwg.popup(
+                            f"你有未读文件{len(files)}条！是否查看？"
+                        )
+                        print(
+                            event,
+                        )
 
-                        if not event:
+                        if not event or event == "取消":
                             exit()
 
                         if values[0][0][1]:
@@ -238,8 +251,6 @@ if __name__ == "__main__":
                             file.seek(0)
                             file.truncate()
                             yaml.dump(config_data, file)
-                        if event == "取消":
-                            exit()
                         elif event == "查看并继续":
                             explore(postbox)
                         elif event == "仅查看":
@@ -252,14 +263,14 @@ if __name__ == "__main__":
         # 将 config 文件夹添加到系统路径
         sys.path.append(str(config_directory))
 
-        targetfilename = config['index']
+        targetfilename = config["index"]
         # 检查目标文件是否存在，不存在则退出
         abstf = Path(config_directory) / str(targetfilename)
         if not abstf.exists():
             exit(-1)
 
         # 导入 index 模块
-        index = importlib.import_module('index')
+        index = importlib.import_module("index")
 
         # print(Pather(config_directory)(config["service_path"]).str())
         init = getattr(index, config["entrypoint"])
