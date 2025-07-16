@@ -1,12 +1,8 @@
 from datetime import datetime
 from pathlib import Path
-import sys
-from time import sleep
 from libs.GUIProgressDecorator import GUIProgressDecorator
 from libs.MylinkGUI import MylinkGUI
-import importlib
 import os
-import urllib.parse
 import subprocess
 
 # 其他导入
@@ -14,9 +10,8 @@ import shelve
 
 from ruamel.yaml import YAML
 from typing import Optional
-from mysupport.PopupWindowGenerator._2 import PopupWindowGenerator, checkbox
+from mysupport.PopupWindowGenerator._2 import PopupWindowGenerator
 import uuid
-import _private_config
 
 
 def file_exists_in_dir(filename: str, dir: str) -> bool:
