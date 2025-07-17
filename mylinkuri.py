@@ -1,3 +1,5 @@
+# MYLINK-URI是实现链接跳转的支持库
+
 from datetime import datetime
 from pathlib import Path
 import sys
@@ -11,6 +13,9 @@ import _private_config
 
 import utils
 
+from App import App
+
+
 # 获取脚本的绝对路径
 MV_SCRIPT_DIRECTORY = Path(__file__).parent
 
@@ -23,6 +28,8 @@ if __name__ == "__main__":
         print("请传入要显示的消息作为参数！")
         exit()
 
+    with App():
+        
     # 开发模式
     if sys.argv[1] == "dev":
         if len(sys.argv) < 3:
