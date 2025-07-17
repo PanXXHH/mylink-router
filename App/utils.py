@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
-from libs.GUIProgressDecorator import GUIProgressDecorator
-from libs.MylinkGUI import MylinkGUI
+from .uri.GUIProgressDecorator import GUIProgressDecorator
+from .uri.MylinkGUI import MylinkGUI
 import os
 import subprocess
 

@@ -1,134 +1,17 @@
 # MYLINK-URI是实现链接跳转的支持库
 
-from datetime import datetime
 from pathlib import Path
 import sys
-from time import sleep
-import importlib
-import urllib.parse
-
-from ruamel.yaml import YAML
-from mysupport.PopupWindowGenerator._2 import PopupWindowGenerator, checkbox
 import _private_config
-
-import utils
 
 from App import App
 
-
-# 获取脚本的绝对路径
-MV_SCRIPT_DIRECTORY = Path(__file__).parent
-
-# 将数据库文件名附加到脚本的目录中
-cache_path = MV_SCRIPT_DIRECTORY / "file_search_cache.db"
-
-# sys.argv.append("mylink://d.work/")
+sys.argv.append("mylink://d.work/")
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("请传入要显示的消息作为参数！")
-        exit()
 
-    with App():
-        
-    # 开发模式
-    if sys.argv[1] == "dev":
-        if len(sys.argv) < 3:
-            print("参数量不足！")
-            exit()
-
-        parse_result = urllib.parse.urlparse(f"mylink://{sys.argv[2]}")
-        config_directory, config_file = utils.main(
-            parse_result, cache_path, _private_config.TARGET_PATHS
-        )
-        if config_directory is not None:
-            print(Path(config_directory) / config_file)
-        exit()
-
-    parse_result = urllib.parse.urlparse(sys.argv[1])
-
-    if parse_result.fragment == "post":
-        utils.post(parse_result, _private_config.TARGET_PATHS)
-        exit()
-
-    config_directory, config_file = utils.main_withgui(
-        parse_result, cache_path, _private_config.TARGET_PATHS
-    )
-    if config_directory is not None:
-        config = utils.get_config(Path(config_directory) / config_file)
-
-        service_path = Path(config_directory) / str(config["service_path"])
-        postbox = service_path / ".postbox"
-
-        if postbox.exists():
-            if not (postbox / ".config.yml").exists():
-                with (postbox / ".config.yml").open(mode="w"):
-                    ...
-
-            with (postbox / ".config.yml").open(mode="r+") as file:
-                yaml = YAML()
-                config_data = yaml.load(file)
-                if not config_data:
-                    config_data = {}
-
-                files = [
-                    entry
-                    for entry in postbox.iterdir()
-                    if (postbox / entry).is_file() and not entry.name.startswith(".")
-                ]
-                if files:
-                    # 获取今天的日期，格式化为 'YYYY-MM-DD'
-                    today_str = datetime.today().strftime("%Y-%m-%d")
-                    if (
-                        "Do_Not_Remind_Within_Today" not in config_data
-                        or config_data["Do_Not_Remind_Within_Today"] != today_str
-                    ):
-                        pwg = PopupWindowGenerator(
-                            title="Postbox",
-                            buttons=["查看并继续", "仅查看", "忽略", "取消"],
-                            esc_exit=True,
-                        )
-                        pwg.add_input_element(checkbox(["今天内不再提示"]))
-                        event, values = pwg.popup(
-                            f"你有未读文件{len(files)}条！是否查看？"
-                        )
-                        print(
-                            event,
-                        )
-
-                        if not event or event == "取消":
-                            exit()
-
-                        if values[0][0][1]:
-                            config_data["Do_Not_Remind_Within_Today"] = today_str
-                            print(config_data)
-
-                            file.seek(0)
-                            file.truncate()
-                            yaml.dump(config_data, file)
-                        elif event == "查看并继续":
-                            utils.explore(postbox)
-                        elif event == "仅查看":
-                            utils.explore(postbox)
-                            exit()
-                    else:
-                        sleep(3)
-                        ...
-
-        # 将 config 文件夹添加到系统路径
-        sys.path.append(str(config_directory))
-
-        targetfilename = config["index"]
-        # 检查目标文件是否存在，不存在则退出
-        abstf = Path(config_directory) / str(targetfilename)
-        if not abstf.exists():
-            exit(-1)
-
-        # 导入 index 模块
-        index = importlib.import_module("index")
-
-        # print(Pather(config_directory)(config["service_path"]).str())
-        init = getattr(index, config["entrypoint"])
-        init(service_path, parse_result)
-
-    else:
-        pwg = PopupWindowGenerator().popup("未找到站点，请检查输入是否有误！")
+    with App(
+        SCRIPT_DIRECTORY=Path(__file__).parent,
+        config_module=_private_config,
+        sys_argv=list(sys.argv),
+    ) as _app:
+        _app.uri()
