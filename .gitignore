@@ -10,6 +10,3 @@ __pycache__/
 # 忽略所有以 _private_ 开头的文件和文件夹
 _private_*
 
-*.bak
-*.dat
-*.dir
