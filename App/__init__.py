@@ -1,5 +1,3 @@
-# from .. import _private_config as _config_template
-
 from datetime import datetime
 from pathlib import Path
 
@@ -10,15 +8,15 @@ import urllib.parse
 
 from ruamel.yaml import YAML
 from mysupport.PopupWindowGenerator._2 import PopupWindowGenerator, checkbox
-import _private_config
 
+from . import _private_config_template as _config_template
 from . import utils
 
 
 class App:
     def __init__(self, SCRIPT_DIRECTORY: Path, config_module, sys_argv: list) -> None:
         self.MV_SCRIPT_DIRECTORY = SCRIPT_DIRECTORY
-        self.config_module = config_module
+        self.config_module: _config_template = config_module
         self.sys_argv = sys_argv
 
         print(f"初始化实例")
@@ -42,7 +40,7 @@ class App:
             print("请传入要显示的消息作为参数！")
             exit()
 
-        cache_path = self.MV_SCRIPT_DIRECTORY / "file_search_cache.db"
+        cache_path = self.config_module.DATA_PATH / "file_search_cache.db"
 
         # 开发模式
         if self.sys_argv[1] == "dev":
@@ -52,7 +50,7 @@ class App:
 
             parse_result = urllib.parse.urlparse(f"mylink://{self.sys_argv[2]}")
             config_directory, config_file = utils.main(
-                parse_result, cache_path, _private_config.TARGET_PATHS
+                parse_result, cache_path, self.config_module.TARGET_PATHS
             )
             if config_directory is not None:
                 print(Path(config_directory) / config_file)
@@ -61,11 +59,11 @@ class App:
         parse_result = urllib.parse.urlparse(self.sys_argv[1])
 
         if parse_result.fragment == "post":
-            utils.post(parse_result, _private_config.TARGET_PATHS)
+            utils.post(parse_result, self.config_module.TARGET_PATHS)
             exit()
 
         config_directory, config_file = utils.main_withgui(
-            parse_result, cache_path, _private_config.TARGET_PATHS
+            parse_result, cache_path, self.config_module.TARGET_PATHS
         )
         if config_directory is not None:
             config = utils.get_config(Path(config_directory) / config_file)
@@ -148,8 +146,12 @@ class App:
         else:
             pwg = PopupWindowGenerator().popup("未找到站点，请检查输入是否有误！")
 
+    def cli(self):
+        pass
+
     def run(self):
         pass
+
 
 # # 使用 with 语句
 # with App("测试实例") as obj:
